@@ -2259,8 +2259,7 @@ cb.onMessage(function (msg)
 	
 	if(cb.settings.colorChat == 'All' ||
 	   (cb.settings.colorChat == 'WithToken' && (msg['is_mod'] || msg['has_tokens'])) ||
-	   (cb.settings.colorChat == 'Moderator' && msg['is_mod'] ) ||
-	    msg['user'] == cb.room_slug)
+	   (cb.settings.colorChat == 'Moderator' && msg['is_mod'] ))
 	{
 	    msg["c"] = get_user_color(msg["user"]);
 		msg["f"] = get_user_font(msg["user"]);
