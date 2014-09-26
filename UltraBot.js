@@ -924,7 +924,7 @@ function setTipTitles(user, message)
 {
     if(cb.settings.kingTipper == 'Yes' && user == currentKing)
     {
-        var m = ':smallCrown |' + tipperArray[findTipper(user)][1] + '| ' + message[0];
+        var m = ':caraKing |' + tipperArray[findTipper(user)][1] + '| ' + message[0];
     }
     else
     {
