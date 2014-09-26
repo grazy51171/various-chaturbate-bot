@@ -3,7 +3,7 @@
  Author: britney_and_justin
  Creation Date: 3/17/14
  Date Last Edited: 8/27/14
- Live Verson: 1.05-SP1
+ Live Verson: 1.05-SP2
  Test Version: 1.05
 **/
 /**
@@ -84,8 +84,11 @@ cb.settings_choices =
     {name: 'tipMessageMin', label: 'Enter the minimum tip amount that you would like to trigger the message', type: 'int', minValue: 1, maxValue: 1000000, defaultValue: 10},
     {name: 'dickList', label: 'Would you like to take advantage of the Chaturbate Dick(less) List?', type: 'choice', choice1: 'Yes', choice2: 'No', defaultValue: 'Yes'},
     {name: 'niceList', label: 'Enter the names of any users you would like to guarantee voice and graphic usage privileges, regardless of the silence and graphic levels, separated by commas and without spaces:', type: 'str', minLength: 1, maxLength: 1000, defaultValue: '', required: false},
-	{name: 'colorChat', label: 'Would you like to add color to user?', type: 'choice', choice1: 'All', choice2: 'WithToken', choice3: 'Moderator', choice4: 'NoOne', defaultValue: 'WithToken'}
-]
+	{name: 'colorChat', label: 'Would you like to add color to user?', type: 'choice', choice1: 'All', choice2: 'WithToken', choice3: 'Moderator', choice4: 'NoOne', defaultValue: 'WithToken'},
+	{name: 'knightGif', label: 'Knight GIF.', type: 'str', minLength: 1, maxLength: 30, defaultValue: ':caraknight1 '},
+	{name: 'knightList', label: 'Knight List username$Token.', type: 'str', minLength: 1, maxLength: 300, defaultValue: 'docky$1034,grazy$517', required: false},
+    
+	]
 }
 //variables
 {
@@ -148,6 +151,9 @@ var kingTipperSpam = 0;
 var notifierSpamTGL = 0;
 var leaderboardSpam = 0;
 var notifierMessage = cb.settings.spamMessage;
+
+var knightArray = ['','',''];
+var knightTipsArray = [0,0,0];
 
 /* Used by color */
 var colors = [];
@@ -2264,13 +2270,18 @@ cb.onMessage(function (msg)
 	    msg["c"] = get_user_color(msg["user"]);
 		msg["f"] = get_user_font(msg["user"]);
 	}
-		
-		
+	
     //tip titles, if turned on, as well as king's crown
     if(cb.settings.tipTitles == 'Yes' && parseInt(tipperArray[findTipper(msg['user'])][1]) > 0 && message[0].charAt(0) != "/")
     {
         msg['m'] = setTipTitles(msg['user'],message);
     }
+	
+	if(cbjs.arrayContains(knightArray,msg['user']))
+	{
+	     msg['m'] = cb.settings.knightGif + msg['m'];
+	}
+	
     return msg;
 });
 }
@@ -2398,6 +2409,45 @@ cb.onTip(function (tip)
     {
         cb.sendNotice(cb.settings.tipMessage,'',purple);
     }
+	
+	var tipindiv = parseInt(tip['amount']);
+	//
+	if(tipindiv > knightTipsArray[0])
+	{
+	   if(knightArray[0] == tip['from_user'])
+	   {
+	      // pas de mouvement
+	   } else if(knightArray[1] == tip['from_user'])
+	   {
+	     knightTipsArray[1] = knightTipsArray[0];
+	     knightArray[1] = knightArray[0];
+	   }  else 
+	   {
+	     knightTipsArray[2] = knightTipsArray[1];
+	     knightArray[2] = knightArray[1];
+	     knightTipsArray[1] = knightTipsArray[0];
+	     knightArray[1] = knightArray[0];
+	   }
+	   knightTipsArray[0] = tipindiv;
+	   knightArray[0] =tip['from_user'];
+	} else if (tipindiv > knightTipsArray[1])
+	{
+	   if(knightArray[1] == tip['from_user'])
+	   {
+	      // pas de mouvement
+	   } else 
+	   {
+	     knightTipsArray[2] = knightTipsArray[1];
+	     knightArray[2] = knightArray[1];
+	   }  
+	   knightTipsArray[1] = tipindiv;
+	   knightArray[1] =tip['from_user'];
+	} else if (tipindiv > knightTipsArray[2])
+	{
+       knightTipsArray[2] = tipindiv;
+	   knightArray[2] =tip['from_user'];
+	
+	}
 });
 }
 //onEnter
@@ -2408,6 +2458,12 @@ cb.onEnter(function(user)
     {
         cb.sendNotice(cb.settings.enterMessage,user,purple);
     }
+	
+	if(cbjs.arrayContains(knightArray,user['user']))
+	{
+	    cb.chatNotice('Welcome ' + cb.settings.knightGif + user['user'] + '!');
+	}
+	
 });
 }
 //init
@@ -2435,6 +2491,27 @@ cb.onEnter(function(user)
             niceArray = n.split(',');
             numNice = niceArray.length;
         }
+
+		if(cb.settings.knightList != '' && cb.settings.knightList != null)
+        {
+            var n = cb.settings.knightList;
+            var tmpKnight = n.split(',');
+			for(var i = 0; i < knightArray.length && i < 3; i++)
+			{
+			    var oneKnigt =  tmpKnight[i];
+				if(oneKnigt != null &&  oneKnigt!='')
+				{
+			    var tmpKnightName = oneKnigt.split('$');
+				if(tmpKnightName.length == 2)
+				{ 
+				  knightArray[i] = tmpKnightName[0];
+				  knightTipsArray[i] = parseInt(tmpKnightName[1]);
+				}
+				}
+			}
+        }
+		
+		
         initialize = 1;
     }
 
