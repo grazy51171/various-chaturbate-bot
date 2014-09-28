@@ -3,7 +3,7 @@
  Author: britney_and_justin
  Creation Date: 3/17/14
  Date Last Edited: 8/27/14
- Live Verson: 1.05-SP2
+ Live Verson: 1.05-SP3
  Test Version: 1.05
 **/
 /**
@@ -1674,6 +1674,48 @@ function showLeaderBoard(from)
     }
 
 }
+
+function showKnightList(from)
+{
+    
+	cb.sendNotice
+		(
+			'Knight List'
+			,from,purple
+		);
+	cb.sendNotice
+		(
+			knightArray[0] + ' : ' + knightTipsArray[0] +
+				'\n' + knightArray[1] + ' : ' + knightTipsArray[1] +
+				'\n' + knightArray[2] + ' : ' + knightTipsArray[2]
+			,from);
+	cb.sendNotice
+		(
+			''
+			,from,purple);
+
+}
+function showKnightSave(from)
+{
+    
+	cb.sendNotice
+		(
+			'Knight List to put in setting'
+			,from,purple
+		);
+	cb.sendNotice
+		(
+			knightArray[0] + '$' + knightTipsArray[0] +
+				',' + knightArray[1] + '$' + knightTipsArray[1] +
+				',' + knightArray[2] + '$' + knightTipsArray[2]
+			,from);
+	cb.sendNotice
+		(
+			''
+			,from,purple);
+
+}
+
 function notifierSpam()
 {
     cb.setTimeout(notifierSpamTimer,cb.settings.spamTimer*60000);
@@ -2140,6 +2182,31 @@ cb.onMessage(function (msg)
 				msg["f"] = get_user_font(user);
 				break;
 			}
+			case '/knightlist':
+			{
+				cmd = 1;
+				if(msg['is_mod'] || msg['user'] == cb.room_slug)
+					showKnightList('');
+				else
+					showKnightList(msg['user']);
+                break;
+			}
+			case '/knightforconfig':
+            {
+                //user entered a proper command
+                cmd = 1;
+
+                //permission check
+                if(msg['is_mod'] || msg['user'] == cb.room_slug || cbjs.arrayContains(eModArray,msg['user']))
+                {
+                    showKnightSave(msg['user']);
+                }
+                else
+                {
+                    cb.sendNotice('Only moderators and broadcasters are able to use that command.\nType "/ubhelp commands" to see a full list of the available commands.',msg['user'],purple);
+                }
+                break;
+            }
         }
 
         //Level Up! command support
