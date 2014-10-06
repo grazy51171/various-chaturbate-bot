@@ -1,10 +1,11 @@
 /**
- Name: Ultra Bot
+ Name: Ultra Bot For CARA
  Author: britney_and_justin
+         grazy (modification)
  Creation Date: 3/17/14
- Date Last Edited: 8/27/14
- Live Verson: 1.05-SP3
- Test Version: 1.05
+ Date Last Edited: 10/6/14
+ Live Verson: 1.05-GZO-4
+ Test Version: 1.05-GZO-4
 **/
 /**
     todo
@@ -25,7 +26,7 @@
 **/
 /**
 Change Log
-
+ 1.05-GZO-4	Add Knight for cara and color
  1.05       Once again, thanks to acrazyguy for suggesting this change.
             Tip titles will no longer accidentally stop commands from going through
  1.04       Changes made as a result of suggestions from acrazyguy.  Thank you!
@@ -121,6 +122,10 @@ cb.settings_choices =
     notifierSpamTGL     ==>     facilitates command to toggle notifier spam
     leaderboardSpam     ==>     facilitates command to toggle leaderboard spam
     notifierMessage     ==>     message the user wants to send periodically
+	knightArray			==>		list of knight
+	knightTipsArray		==>		list of tip from knight
+	colors				==>     color for user
+	fonts				==>		font for user
  **/
 {
 var tipperArray = new Array;
@@ -1000,8 +1005,8 @@ function help(option,from)
             cb.sendNotice
                 (
                     'commands' +
-                    'dicklist' +
-                    'nicelist' +
+                    '\ndicklist' +
+                    '\nnicelist' +
                     '\nabout'
                     ,from
                 );
@@ -1050,6 +1055,10 @@ function help(option,from)
                     '\n/leaderboard' +
                     '\n/kingspam' +
                     '\n/notifierspam' +
+					'\n/color' +
+					'\n/font' +
+					'\n/knightlist' +
+					'\n/knightforconfig' +
                     '\n/ubhelp'
                     ,from
                 );
@@ -1590,6 +1599,48 @@ function help(option,from)
                     '/leaderboardspam is a command that is usable by moderators and room hosts.' +
                     '\nThe syntax for using leaderboardspam is /leaderboardspam x, where x is either on or off.  ' +
                     'Using this command toggles the spamming of the top three tippers.'
+                    ,from
+                );
+            cb.sendNotice
+                (
+                    ''
+                    ,from,purple
+                );
+            break;
+        }
+		case 'color':
+        {
+            valid = 1;
+            cb.sendNotice
+                ('/color Help'
+                    ,from,purple
+                );
+            cb.sendNotice
+                (
+                    '/color is a command that is usable by evryone depending of configuration.' +
+                    '\nThe syntax for using color is /color .  ' +
+                    '\nUsing this command change the color of your text.'
+                    ,from
+                );
+            cb.sendNotice
+                (
+                    ''
+                    ,from,purple
+                );
+            break;
+        }
+		case 'font':
+        {
+            valid = 1;
+            cb.sendNotice
+                ('/font Help'
+                    ,from,purple
+                );
+            cb.sendNotice
+                (
+                    '/font is a command that is usable by evryone depending of configuration.' +
+                    '\nThe syntax for using color is /font .  ' +
+                    '\nUsing this command change the font of your text.'
                     ,from
                 );
             cb.sendNotice
@@ -2497,7 +2548,7 @@ cb.onTip(function (tip)
 	   }
 	   knightTipsArray[0] = tipindiv;
 	   knightArray[0] =tip['from_user'];
-	} else if (tipindiv > knightTipsArray[1])
+	} else if (tipindiv > knightTipsArray[1] && knightArray[0] != tip['from_user'])
 	{
 	   if(knightArray[1] == tip['from_user'])
 	   {
@@ -2509,7 +2560,7 @@ cb.onTip(function (tip)
 	   }  
 	   knightTipsArray[1] = tipindiv;
 	   knightArray[1] =tip['from_user'];
-	} else if (tipindiv > knightTipsArray[2])
+	} else if (tipindiv > knightTipsArray[2] && knightArray[0] != tip['from_user'] && knightArray[1] != tip['from_user'])
 	{
        knightTipsArray[2] = tipindiv;
 	   knightArray[2] =tip['from_user'];
