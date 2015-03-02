@@ -4,9 +4,10 @@
          grazy (modification)
  Creation Date: 3/17/14
  Date Last Edited: 10/6/14
- Live Verson: 1.05-GZO-4
- Test Version: 1.05-GZO-4
+ Live Verson: 1.06-GZO-4
+ Test Version: 1.06-GZO-4
 **/
+
 /**
     todo
     make commands to toggle kingtipper and stuff
@@ -26,7 +27,9 @@
 **/
 /**
 Change Log
- 1.05-GZO-4	Add Knight for cara and color
+ 1.06-GZO-4	Add Knight for cara and color
+ 1.06       Change made as a result of a suggestion from bate_n_switch and mnpugdog
+            Changing the silence or graphic level will no longer send a message to the entire room; it will only send a message to mods and casters.
  1.05       Once again, thanks to acrazyguy for suggesting this change.
             Tip titles will no longer accidentally stop commands from going through
  1.04       Changes made as a result of suggestions from acrazyguy.  Thank you!
@@ -67,7 +70,7 @@ Change Log
 cb.settings_choices =
 [
     {name: 'invalidToggle', label: 'Would you like the bot to send the user a message when an invalid command is entered?', type: 'choice', choice1: 'Yes', choice2: 'No', defaultValue: 'Yes'},
-    {name: 'tipTitles', label: 'Do you want to display users\'s tip totals as titles?', type: 'choice', choice1: 'Yes', choice2: 'No', defaultValue: 'Yes'},
+    {name: 'tipTitles', label: 'Do you want to display users\' tip totals as titles?', type: 'choice', choice1: 'Yes', choice2: 'No', defaultValue: 'Yes'},
     {name: 'kingTipper', label: 'Do you want to use the "King Tipper" feature?', type: 'choice', choice1: 'Yes', choice2: 'No', defaultValue: 'Yes'},
     {name: 'kingTipperSpam', label: 'Do you want to periodically announce the tip required to become King?', type: 'choice', choice1: 'Yes', choice2: 'No', defaultValue: 'Yes'},
     {name: 'kingMin', label: 'Enter the minimum tip level for a user to become King:', type: 'int', minValue: 1, maxValue: 1000000, defaultValue: 25},
@@ -97,7 +100,9 @@ cb.settings_choices =
     Variable            ==>     Purpose
     tipperArray         ==>     [i][0] = User's name    [i][1] = User's total tips this session
     numTippers          ==>     number of users who have given tips this session
+    modArray            ==>     array of mods
     eModArray           ==>     [i] = User's name, list of users who have been given emergency mod powers
+    numMods             ==>     number of moderators this session
     numEMods            ==>     number of users who have been given emergency mod powers this session
     niceArray           ==>     [i] = user's name, list of users who have been added to the nice list
     numNice             ==>     number of users who have been added to the nice list
@@ -130,7 +135,10 @@ cb.settings_choices =
 {
 var tipperArray = new Array;
 var numTippers = 0;
+var modArray = new Array;
+    modArray[0] = cb.room_slug;
 var eModArray = new Array;
+var numMods = 1;
 var numEMods = 0;
 var dickArray = [''];
 var niceArray = new Array;
@@ -142,7 +150,7 @@ var numIgnorers = 0;
 var whisperArray = new Array;
 var numWhispers = 0;
 var silenceLevel = 0;
-var graphicLevel = 0;
+var graphicLevel = 1;
 var startTime = 0;
 var timerDuration = 0;
 var timeAdded = 0;
@@ -347,6 +355,11 @@ function findTipper(user)
     }
     return i;
 }
+function modArrayPopulate(user)
+{
+    modArray[numMods] = user;
+    numMods++;
+}
 function eModArrayPopulate(user)
 {
     eModArray[numEMods] = user;
@@ -415,21 +428,25 @@ function setSilenceLevel(s, mod)
     if(parseInt(s) >= 0 && parseInt(s) <= 3)
     {
         silenceLevel = parseInt(s);
-        cb.sendNotice('The silence level has been set to ' + s + '.','',purple);
-        switch(parseInt(s))
+        for(var i = 0; i < modArray.length; i++)
         {
-            case 0:
-                cb.sendNotice('All members can talk in chat.','',purple);
-                break;
-            case 1:
-                cb.sendNotice('Only members with tokens can talk in chat.','',purple);
-                break;
-            case 2:
-                cb.sendNotice('Only members who have tipped can talk in chat.','',purple);
-                break;
-            case 3:
-                cb.sendNotice('Only members who have tipped at least 10 tokens can talk in chat.','',purple);
-                break;
+            cb.sendNotice('The silence level has been set to ' + s + '.',modArray[i],purple);
+
+            switch(parseInt(s))
+            {
+                case 0:
+                    cb.sendNotice('All members can talk in chat.',modArray[i],purple);
+                    break;
+                case 1:
+                    cb.sendNotice('Only members with tokens can talk in chat.',modArray[i],purple);
+                    break;
+                case 2:
+                    cb.sendNotice('Only members who have tipped can talk in chat.',modArray[i],purple);
+                    break;
+                case 3:
+                    cb.sendNotice('Only members who have tipped at least 10 tokens can talk in chat.',modArray[i],purple);
+                    break;
+            }
         }
     }
     else
@@ -442,21 +459,25 @@ function setGraphicLevel(s, mod)
     if(parseInt(s) >= 0 && parseInt(s) <= 3)
     {
         graphicLevel = parseInt(s);
-        cb.sendNotice('The graphic level has been set to ' + s + '.','',purple);
-        switch(parseInt(s))
+        for(var i = 0; i < modArray.length; i++)
         {
-            case 0:
-                cb.sendNotice('All members can use graphics in chat.','',purple);
-                break;
-            case 1:
-                cb.sendNotice('Only members with tokens can use graphics in chat.','',purple);
-                break;
-            case 2:
-                cb.sendNotice('Only members who have tipped can use graphics in chat.','',purple);
-                break;
-            case 3:
-                cb.sendNotice('Only members who have tipped at least 10 tokens can use graphics in chat.','',purple);
-                break;
+            cb.sendNotice('The graphic level has been set to ' + s + '.',modArray[i],purple);
+
+            switch(parseInt(s))
+            {
+                case 0:
+                    cb.sendNotice('All members can use graphics in chat.',modArray[i],purple);
+                    break;
+                case 1:
+                    cb.sendNotice('Only members with tokens can use graphics in chat.',modArray[i],purple);
+                    break;
+                case 2:
+                    cb.sendNotice('Only members who have tipped can use graphics in chat.',modArray[i],purple);
+                    break;
+                case 3:
+                    cb.sendNotice('Only members who have tipped at least 10 tokens can use graphics in chat.',modArray[i],purple);
+                    break;
+            }
         }
     }
     else
@@ -929,15 +950,11 @@ function setTipTitles(user, message)
 {
     if(cb.settings.kingTipper == 'Yes' && user == currentKing)
     {
-        var m = ':caraKing |' + tipperArray[findTipper(user)][1] + '| ' + message[0];
+        var m = ':caraKing |' + tipperArray[findTipper(user)][1] + '| ' + message;
     }
     else
     {
-        var m = '|' + tipperArray[findTipper(user)][1] + '| ' + message[0];
-    }
-    for(var i = 1; i < message.length; i++)
-    {
-        m += ' ' + message[i];
+        var m = '|' + tipperArray[findTipper(user)][1] + '| ' + message;
     }
 
     return m;
@@ -1004,10 +1021,10 @@ function help(option,from)
                 );
             cb.sendNotice
                 (
-                    'commands' +
-                    '\ndicklist' +
-                    '\nnicelist' +
-                    '\nabout'
+                    'commands\n' +
+                    'dicklist\n' +
+                    'nicelist\n' +
+                    'about'
                     ,from
                 );
             cb.sendNotice
@@ -1943,7 +1960,7 @@ cb.onMessage(function (msg)
                 //permission check
                 if(msg['is_mod'] || msg['user'] == cb.room_slug || cbjs.arrayContains(eModArray,msg['user']))
                 {
-                    setSilenceLevel(message[1]);
+                    setSilenceLevel(message[1], msg['user']);
                 }
                 else
                 {
@@ -1959,7 +1976,7 @@ cb.onMessage(function (msg)
                 //permission check
                 if(msg['is_mod'] || msg['user'] == cb.room_slug || cbjs.arrayContains(eModArray,msg['user']))
                 {
-                    setGraphicLevel(message[1]);
+                    setGraphicLevel(message[1], msg['user']);
                 }
                 else
                 {
@@ -2392,7 +2409,7 @@ cb.onMessage(function (msg)
     //tip titles, if turned on, as well as king's crown
     if(cb.settings.tipTitles == 'Yes' && parseInt(tipperArray[findTipper(msg['user'])][1]) > 0 && message[0].charAt(0) != "/")
     {
-        msg['m'] = setTipTitles(msg['user'],message);
+        msg['m'] = setTipTitles(msg['user'],msg['m']);
     }
 	
 	if(cbjs.arrayContains(knightArray,msg['user']))
@@ -2574,7 +2591,11 @@ cb.onEnter(function(user)
 {
     if(cb.settings.notifierEnter == "Yes")
     {
-        cb.sendNotice(cb.settings.enterMessage,user,purple);
+        cb.sendNotice(cb.settings.enterMessage,user['user'],purple);
+    }
+    if(user['is_mod'] && !cbjs.arrayContains(modArray,user))
+    {
+        modArrayPopulate(user['user']);
     }
 	
 	if(cbjs.arrayContains(knightArray,user['user']))
@@ -2609,8 +2630,9 @@ cb.onEnter(function(user)
             niceArray = n.split(',');
             numNice = niceArray.length;
         }
-
-		if(cb.settings.knightList != '' && cb.settings.knightList != null)
+        cb.sendNotice('Grey users are now unable to use graphics by default.  If you would like grey users to be able to use graphics, type /graphiclevel 0.', cb.room_slug, purple);
+	
+	if(cb.settings.knightList != '' && cb.settings.knightList != null)
         {
             var n = cb.settings.knightList;
             var tmpKnight = n.split(',');
