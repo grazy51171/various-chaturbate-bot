@@ -48,8 +48,8 @@ cb.onTip(function (tip) {
             changeMode();
         }
     };
-    //    update_subject();
-    cb.drawPanel();
+
+
 });
 
 cb.onDrawPanel(function (user) {
@@ -69,6 +69,7 @@ function changeMode() {
     }
 
     cb.sendNotice("Nouveau mode : " + current_mode + " " + cb.settings["mode" + current_mode]);
+    cb.drawPanel();
 }
 
 function changeSpeed() {
@@ -78,38 +79,46 @@ function changeSpeed() {
     }
 
     cb.sendNotice("Nouvelle vitesse : " + current_speed);
+    cb.drawPanel();
 }
 
+/* 
+ * Envoie du texte du message d'aide (ou initial).
+ */
 function appMessage(eventDetail) {
     var userName = "";
     if (eventDetail !== null) {
         userName = eventDetail['user'];
     }
 
-    cb.sendNotice(":AxhellMC", userName);
-    cb.sendNotice("Pour changer de mode : " + cb.settings.tokens_to_change + " tk.", userName);
+    var noticeText = ":AxhellMC";
+
+    noticeText += "\nPour changer de mode : " + cb.settings.tokens_to_change + " tk.";
     if (handleSpeed) {
-        cb.sendNotice("Pour changer de vitesse : " + cb.settings.tokens_for_speed + " tk.", userName);
+        noticeText += "\nPour changer de vitesse : " + cb.settings.tokens_for_speed + " tk.";
     }
     if (isMaster(eventDetail)) {
-        cb.sendNotice("Pour changer de mode tu peux tapper : /mode ", userName);
+        noticeText += "\nPour changer de mode tu peux tapper : /mode ";
         if (handleSpeed) {
-            cb.sendNotice("Pour changer de vitesse tu peux tapper : /speed ", userName);
+            noticeText += "\nPour changer de vitesse tu peux tapper : /speed ";
         }
     }
+    cb.sendNotice(noticeText, userName);
 }
 
 function setMaster(userName) {
-    if(masterUser !== null){
-        cb.sendNotice("Tu as perdu la maitrise. :cry", masterUser);    
+    if (masterUser !== null) {
+        cb.sendNotice("Tu as perdu la maitrise. :cry", masterUser);
     }
-    
+
     masterUser = userName;
-    cb.sendNotice("Tu as la maitrise.", userName);
-    cb.sendNotice("Pour changer de mode tu peux tapper : /mode ", userName);
+    var noticeText = ":AxhellMC";
+    noticeText += "\nTu as la maitrise.";
+    noticeText += "\nPour changer de mode tu peux tapper : /mode ";
     if (handleSpeed) {
-        cb.sendNotice("Pour changer de vitesse tu peux tapper : /speed ", userName);
+        noticeText += "\nPour changer de vitesse tu peux tapper : /speed ";
     }
+    cb.sendNotice(noticeText, userName);
 }
 
 cb.onEnter(function (user) {
@@ -146,7 +155,7 @@ function handleCommand(message) {
                 return true;
         }
     }
-
+    // brocaster command
     if (message['user'] == cb.room_slug) {
         switch (messagePart[0]) {
             case '/master':
