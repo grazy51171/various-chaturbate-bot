@@ -4,6 +4,8 @@ var current_mode = 1;
 var current_speed = 1;
 var numberOfChangeMode = 0;
 var handleSpeed = true;
+var masterUser = null;
+var modAreMaster = false;
 var last_tip_username = null;
 var last_tip_amount = 0;
 
@@ -12,6 +14,8 @@ cb.settings_choices = [
     { name: 'tokens_to_change', type: 'int', minValue: 1, default: 1, label: 'Nombre de token pour changer de mode.' },
     { name: 'handleSpeed', type: 'choice', choice1: 'OUI', choice2: 'NON', default: 'OUI', label: 'Gestion de la vitesse actif.' },
     { name: 'tokens_for_speed', type: 'int', minValue: 2, default: 100, label: 'Nombre de token pour changer de vitesse.' },
+    { name: 'modAreMaster', type: 'choice', choice1: 'OUI', choice2: 'NON', default: 'NON', label: 'Les mod ont droit au commande avancé.' },
+
     { name: 'mode1', type: 'str', default: "---------", label: ' mode 1.' },
     { name: 'mode2', type: 'str', default: "-- -- -- ", label: ' mode 2.' },
     { name: 'mode3', type: 'str', default: "- - - - - ", label: ' mode 3.' },
@@ -76,18 +80,99 @@ function changeSpeed() {
     cb.sendNotice("Nouvelle vitesse : " + current_speed);
 }
 
-function appMessage(userName) {
+function appMessage(eventDetail) {
+    var userName = "";
+    if (eventDetail !== null) {
+        userName = eventDetail['user'];
+    }
+
     cb.sendNotice(":AxhellMC", userName);
     cb.sendNotice("Pour changer de mode : " + cb.settings.tokens_to_change + " tk.", userName);
-    if(handleSpeed) {
+    if (handleSpeed) {
         cb.sendNotice("Pour changer de vitesse : " + cb.settings.tokens_for_speed + " tk.", userName);
+    }
+    if (isMaster(eventDetail)) {
+        cb.sendNotice("Pour changer de mode tu peux tapper : /mode ", userName);
+        if (handleSpeed) {
+            cb.sendNotice("Pour changer de vitesse tu peux tapper : /speed ", userName);
+        }
+    }
+}
+
+function setMaster(userName) {
+    if(masterUser !== null){
+        cb.sendNotice("Tu as perdu la maitrise. :cry", masterUser);    
+    }
+    
+    masterUser = userName;
+    cb.sendNotice("Tu as la maitrise.", userName);
+    cb.sendNotice("Pour changer de mode tu peux tapper : /mode ", userName);
+    if (handleSpeed) {
+        cb.sendNotice("Pour changer de vitesse tu peux tapper : /speed ", userName);
     }
 }
 
 cb.onEnter(function (user) {
     cb.sendNotice('Bienvenue ' + user['user'], user['user']);
-    appMessage(user['user']);
+    appMessage(user);
 });
+
+cb.onMessage(function (message) {
+    // Gestion des commande.
+    if (message['m'].charAt(0) == '/')
+        if (handleCommand(message)) {
+            message['X-Spam'] = true;
+        };
+});
+
+function handleCommand(message) {
+    //turn the message into an array
+    var messagePart = message['m'].split(' ');
+    // general command
+    switch (messagePart[0]) {
+        case '/help':
+            appMessage(message);
+            return true;
+    }
+    // reserved command
+    if (isMaster(message)) {
+        switch (messagePart[0]) {
+            case '/mode':
+                changeMode();
+                return true;
+            case '/speed':
+                if (handleSpeed)
+                    changeSpeed();
+                return true;
+        }
+    }
+
+    if (message['user'] == cb.room_slug) {
+        switch (messagePart[0]) {
+            case '/master':
+                setMaster(messagePart[1]);
+                return true;
+        }
+    }
+
+    return false;
+}
+
+function isMaster(eventDetail) {
+    if (eventDetail === null)
+        return false;
+    if (eventDetail['user'] == cb.room_slug) {
+        return true;
+    }
+    if (eventDetail['user'] == masterUser) {
+        return true;
+    }
+    if (modAreMaster && eventDetail['is_mod']) {
+        return true;
+    }
+
+    return false;
+}
 
 function format_username(val) {
     if (val === null) {
@@ -99,7 +184,10 @@ function format_username(val) {
 
 function init() {
     handleSpeed = (cb.settings.handleSpeed == 'OUI');
-    appMessage("");
+    modAreMaster = (cb.settings.modAreMaster == 'OUI');
+    appMessage(null);
+
 }
 
 init();
+
