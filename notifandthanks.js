@@ -14,7 +14,8 @@
 var i=1;
 
 cb.settings_choices = [
-    {name: 'msgonentry', type: 'choice', choice1: 'yes', choice2: 'no', defaultValue: 'yes', label: "Display Message 1 privately on entry - set to no for busy rooms"},
+    {name: 'msgonentry', type: 'choice', choice1: 'yes', choice2: 'no', defaultValue: 'yes', label: "Display Message entry privately on entry - set to no for busy rooms"},
+    {name:'msgentry', type:'str', required: false, label:'Message entry (use \\n for multi line)',},
     {name:'msg1', type:'str', required: false, label:'Message 1',},
     {name:'msg2', type:'str', required: false, label:'Message 2',},
     {name:'msg3', type:'str', required: false, label:'Message 3',},
@@ -42,7 +43,7 @@ function sendMessage(message, user) {
 
 cb.onEnter(function (user) {
     if (cb.settings['msgonentry'] == 'yes') {
-        sendMessage('Bienvenue ' + user['user'] + '! \n ' + cb.settings['msg1'], user['user'])
+        sendMessage('Bienvenue ' + user['user'] + '! \n ' + cb.settings['msgentry'], user['user'])
     }
 
     if (user['user'] == 'grazy') {
@@ -77,6 +78,9 @@ cb.setTimeout(chatAd, (cb.settings.chat_ad * 60000));
 cb.onTip(function (tip) {
     var tipper = tip['from_user'];
     var tipmsg;
+    // remove tip for me for small tip
+    if(parseInt(tip['amount']) < 5 && tipper == 'grazy' )
+         return;
     if (parseInt(tip['amount']) >= cb.settings.tipamount1) {
         tipmsg = cb.settings.tipmsg1;
         tipmsg = tipmsg.replace("[tipper]", tipper);
