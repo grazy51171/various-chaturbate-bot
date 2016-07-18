@@ -1,5 +1,6 @@
 cb.settings_choices = [
     { name: 'chat_ad', type: 'int', minValue: 1, default: 1, label: 'Minutes entre les messages.' },
+    {name:'keyword', type:'str', label:'Mot clef pour signaler une jouissance', defaultValue: 'biscotte'},
     {name:'msgcolor', type:'str', label:'Notice color (html code default dark red #9F000F)', defaultValue: '#9F000F'},
     {name:'msgback', type:'str', label:'Notice back color (html code default white #9F000F)', defaultValue: '#FFFFFF'},
 
@@ -7,6 +8,8 @@ cb.settings_choices = [
 ]
 
 var nbBiscotte = 0;
+var keyword = 'biscotte';
+var keywordFirstLetter = keyword.charAt(0);
 
 function isMaster(eventDetail) {
     if (eventDetail === null)
@@ -23,7 +26,7 @@ function isMaster(eventDetail) {
 
 cb.onMessage(function (message) {
     // Gestion des commande.
-    if (message['m'].charAt(0) == '/' || message['m'].charAt(0) == 'b')
+    if (message['m'].charAt(0) == '/' || message['m'].charAt(0) == keywordFirstLetter)
         if (handleCommand(message)) {
             message['X-Spam'] = true;
         };
@@ -34,7 +37,7 @@ function handleCommand(message) {
     var messagePart = message['m'].split(' ');
     // general command
     switch (messagePart[0]) {
-        case 'biscotte':
+        case keyword:
             biscotte(message);
             return true;
     }
@@ -62,7 +65,7 @@ function biscotte(message) {
     var message = message['user'] + " a joui : " + message['m'];
     cb.sendNotice(message, cb.room_slug); 
     nbBiscotte++;
-    message = "Une personne de plus a joui. Au total celà fait " + nbBiscotte;
+    message = "Une personne de plus a joui. Au total cela fait " + nbBiscotte;
     sendMessage(message, "");
 }
 
@@ -72,10 +75,14 @@ function showbiscotte(eventDetail) {
         userName = eventDetail['user'];
     }
 
-    var message = "Pour signaler quand tu as joui écrit biscotte dans le chat."
-    if(nbBiscotte > 0) {
+    var message = "Pour signaler quand tu as joui, ecrit "+ keyword + " dans le chat.\n"
+    message += "If you cum, write "+ keyword + " in the chat."
+    if(nbBiscotte > 1) {
         message += "\n";
         message += "" + nbBiscotte + " personnes ont joui."
+    } else if(nbBiscotte == 1) {
+        message += "\n";
+        message += "" + nbBiscotte + " personne a joui."
     }
     sendMessage(message, userName);
 }
@@ -102,6 +109,9 @@ function chatAd(params) {
 
 
 function init() {
+    keyword = cb.settings['keyword'];
+    if (keyword)
+        keywordFirstLetter = keyword.charAt(0);
     showbiscotte(null);
     cb.setTimeout(chatAd, (cb.settings.chat_ad * 60000));
 
